@@ -1,0 +1,62 @@
+<resources>
+    <string name="app_name">Go4Lunch</string>
+
+    <string name="facebook_application_id">662467151402870</string>
+    <string name="fb_login_protocol_scheme">fb662467151402870</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="hungry">J\'ai faim !</string>
+
+    <string name="error_authentication_canceled">Authentification annulée</string>
+    <string name="error_no_internet">Pas de connexion internet !</string>
+    <string name="error_unknown_error">Une erreur inconnue est survenue</string>
+
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+
+
+
+    <!-- NAVIGATION DRAWER -->
+
+    <string name="info_no_email_found">Email not found</string>
+    <string name="info_no_username_found">Username not found</string>
+
+
+    <!-- ERROR TEXT -->
+    <string name="http_error_message">HttpException, Error code : %1$i</string>
+    <string name="timeout_error_message">Request timeout, please check your internet connection</string>
+    <string name="exception_error_message">An error occurred, please check your internet connection</string>
+    <string name="generic_error_message">An error occurred, please try again</string>
+
+    <string name="no_restaurant_error_message">No restaurants found, try to change your search radius settings</string>
+
+
+    <!-- TOOLBAR -->
+    <string name="toolbar_search_title">Search restaurants</string>
+    <string name="toolbar_search_hint">Search</string>
+
+    <string name="search_too_short">Your query must be 3 character length minimum</string>
+    <string name="search_no_result">No restaurant match your query</string>
+
+    <!-- RESTAURANT DETAIL ACTIVITY-->
+    <string name="restaurant_item_call">CALL</string>
+    <string name="restaurant_item_like">LIKE</string>
+    <string name="restaurant_item_dislike">UNLIKE</string>
+    <string name="restaurant_item_website">WEBSITE</string>
+
+
+
+    <!-- RESTAURANT LIST -->
+    <string name="restaurant_closed">Closed</string>
+    <string name="restaurant_opening_not_know">Opening hours are not known</string>
+    <string name="list_unit_distance">%1$sm</string>
+    <string name="restaurant_open_until">Open until %1$s</string>
+    <string name="restaurant_closing_soon">Closing soon (%1$s)</string>
+    <string name="restaurant_mates_number">(%1$d)</string>
+
+
+
+</resources>
