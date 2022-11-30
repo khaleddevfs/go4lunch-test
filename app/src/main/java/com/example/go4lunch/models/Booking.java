@@ -1,15 +1,15 @@
 package com.example.go4lunch.models;
 
-public class Reservation {
+public class Booking {
 
-    private String reservationDate;
+    private String bookingDate;
     private String userId;
     private String restaurantId;
     private String restaurantName;
 
-    public Reservation (String reservationDate, String userId, String restaurantId, String restaurantName) {
+    public Booking (String reservationDate, String userId, String restaurantId, String restaurantName) {
 
-        this.reservationDate = reservationDate;
+        this.bookingDate = reservationDate;
 
         this.userId = userId;
 
@@ -19,11 +19,11 @@ public class Reservation {
 
     }
 
-    public String getReservationDate() {
-        return reservationDate;
+    public String getBookingDate() {
+        return bookingDate;
     }
 
-    public void setReservationDate(String reservationDate) {this.reservationDate = reservationDate;}
+    public void setBookingDate(String bookingDate) {this.bookingDate = bookingDate;}
 
     public String getUserId() {
         return userId;

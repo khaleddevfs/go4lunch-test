@@ -1,12 +1,13 @@
 package com.example.go4lunch.ui.activity;
 
-import static android.content.ContentValues.TAG;
 
 import android.Manifest;
 import android.app.AlertDialog;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BlurMaskFilter;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,13 +16,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -33,51 +34,52 @@ import androidx.lifecycle.ViewModelProvider;
 
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.Transformation;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.go4lunch.R;
 import com.example.go4lunch.databinding.ActivityMainBinding;
-import com.example.go4lunch.databinding.NavigationHeaderBinding;
+import com.example.go4lunch.repository.BookingRepository;
 import com.example.go4lunch.repository.UserRepository;
 import com.example.go4lunch.ui.fragments.ListFragment;
 import com.example.go4lunch.ui.fragments.WorkmatesFragment;
 import com.example.go4lunch.ui.fragments.MapFragment;
 import com.example.go4lunch.ViewModels.CommunicationViewModel;
 
+
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-import java.util.Objects;
+import java.util.Map;
+
 
 
 public class MainActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private ActivityMainBinding binding;
-    protected NavigationHeaderBinding headerBinding;
+    private static final int SIGN_OUT_TASK = 10;
 
+    private ActivityMainBinding binding;
     protected CommunicationViewModel viewModel;
 
-
-    private DrawerLayout drawer;
-    private Toolbar toolbar;
-
-
     ActivityResultLauncher<String[]> mPermissionResultLauncher;
+
+
     private boolean isReadPermissionGranted = false;
     private boolean isLocationPermissionGranted = false;
     private boolean isRecordPermissionGranted = false;
 
-
-
-
-    public static final int TITLE_HUNGRY = R.string.hungry;
-
+    public static final int ACTIVITY_SETTINGS = 0;
+    public static final int ACTIVITY_PLACE_DETAIL = 1 ;
+    public static final int ACTIVITY_LOGIN = 2 ;
 
     public static final int  FRAGMENT_MAPVIEW = 0;
     public static final int  FRAGMENT_LISTVIEW = 1;
@@ -92,23 +94,22 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
-        Fragment fragment = new MapFragment();
-        getSupportFragmentManager().
-                beginTransaction().replace(R.id.fragment_view,fragment)
-                .commit();
-        initDrawer();
-       // initToolBar();
-        initClickListener();
-        configureNavigationView();
-        configureBottomView();
-        updateUIWhenCreating();
-        //retrieveCurrentUser();
-        showFragment(FRAGMENT_MAPVIEW);
+
+
+        this.initDrawer();
+        //this.configureDrawerLayout();
+        //this.initToolBar();
+        this.configureNavigationView();
+        this.configureBottomView();
+        this. updateUIWhenCreating();
+       // this.retrieveCurrentUser();
+        this.showFragment(FRAGMENT_MAPVIEW);
+
 
         mPermissionResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
 
@@ -135,9 +136,14 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         requestPermission();
     }
 
+    private void initToolBar() {
+        setSupportActionBar(binding.simpleToolbar);
+        getSupportActionBar().setTitle(R.string.hungry);
+    }
+
     private void retrieveCurrentUser() {
         viewModel = new ViewModelProvider(this).get(CommunicationViewModel.class);
-        this.viewModel.updateCurrentUserUID(Objects.requireNonNull(getCurrentUser()).getUid());
+        this.viewModel.updateCurrentUserUID(getCurrentUser().getUid());
         UserRepository.getUsersCollection().document(getCurrentUser().getUid()).addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@javax.annotation.Nullable DocumentSnapshot value, @javax.annotation.Nullable FirebaseFirestoreException error) {
@@ -148,8 +154,8 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
                 if(value != null && value.exists()) {
                    Log.e("MAIN_ACTIVITY", "Current data:" + value.getData());
-                   viewModel.updateCurrentZoom(Integer.parseInt(value.getData().get("defaultZoom").toString()));
-                   viewModel.updateCurrentRadius(Integer.parseInt(value.getData().get("searchRadius").toString()));
+                   viewModel.updateCurrentUserZoom(Integer.parseInt(value.getData().get("defaultZoom").toString()));
+                   viewModel.updateCurrentUserRadius(Integer.parseInt(value.getData().get("searchRadius").toString()));
                 } else {
                     Log.e("MAIN_ACTIVITY", "Current data: null" );
                 }
@@ -160,14 +166,14 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private void updateUIWhenCreating() {
         if (this.getCurrentUser() != null){
             View header = binding.activityMainNavView.getHeaderView(0);
-            ImageView imageView = headerBinding.drawerImage;
-            ImageView imageView1 = headerBinding.drawerImageBk;
-            TextView textView = headerBinding.drawerName;
-            TextView textView1 = headerBinding.drawerEmail;
+            ImageView imageView = header.findViewById(R.id.drawer_image);
+            ImageView imageView1 = header.findViewById(R.id.drawer_image_bk);//ImageView imageView1 = headerBinding.drawerImageBk;
+            TextView textView = header.findViewById(R.id.drawer_name);//TextView textView = headerBinding.drawerName;
+            TextView textView1 = header.findViewById(R.id.drawer_email);//TextView textView1 = headerBinding.drawerEmail;
 
             Glide.with(this)
                     .load(R.drawable.header)
-                    //.apply(RequestOptions.bitmapTransform(new BlurMaskFilter()))
+                    .apply(RequestOptions.bitmapTransform((Transformation<Bitmap>) new BlurMaskFilter(30, BlurMaskFilter.Blur.NORMAL)))//modif
                     .into(imageView1);
 
 
@@ -175,7 +181,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             if (this.getCurrentUser().getPhotoUrl() !=null ){
                 Glide.with(this)
                         .load(this.getCurrentUser().getPhotoUrl())
-                        .apply(RequestOptions.centerCropTransform())
+                        .apply(RequestOptions.circleCropTransform())
                         .into(imageView);
             }
 
@@ -242,8 +248,8 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
     @Override
     public void onBackPressed(){
-        if (drawer.isDrawerOpen(GravityCompat.START)){
-            drawer.closeDrawer(GravityCompat.START);
+        if (this.binding.activityMainDrawerLayout.isDrawerOpen(GravityCompat.START)){
+           this.binding.activityMainDrawerLayout.closeDrawer(GravityCompat.START);
         } else {
            super.onBackPressed();
         }
@@ -255,30 +261,34 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
        DrawerLayout mDrawerLayout = binding.activityMainDrawerLayout;
          Toolbar mToolbar = binding.simpleToolbar;
          setSupportActionBar(mToolbar);
-         Objects.requireNonNull(getSupportActionBar()).setTitle(TITLE_HUNGRY);
+         getSupportActionBar().setTitle(R.string.hungry);
         configureDrawerLayout (mDrawerLayout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+    }
+
+    private void configureDrawerLayout(DrawerLayout mDrawerLayout) {
+        ActionBarDrawerToggle barDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, binding.simpleToolbar, R.string.drawer_open, R.string.drawer_close);
+        mDrawerLayout.addDrawerListener(barDrawerToggle);
+        barDrawerToggle.syncState();
     }
 
 
 
 
 
-    private void initClickListener() {
-        binding.bottomNavigation.setOnClickListener(v -> {
-        });
+   /* private void initClickListener() {
+
+        binding.bottomNavigation.setOnClickListener(OnSuccessListener);
 
         binding.activityMainNavView.setOnClickListener(v -> {
 
         });
 
-    }
+    }*/
 
-    private void configureDrawerLayout(DrawerLayout mDrawerLayout) {
-    }
+
 
     private void showFragment(int fragmentIdentifier){
         Fragment newFragment = new Fragment();
@@ -305,17 +315,76 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         transaction.commit();
     }
 
+    private void showActivity(int activityIdentifier){
+        switch (activityIdentifier){
+            case ACTIVITY_SETTINGS:
+                launchActivity(SettingsActivity.class,null);
+                break;
+            case ACTIVITY_PLACE_DETAIL:
+                BookingRepository.getBooking(getCurrentUser().getUid(),getTodayDate()).addOnCompleteListener(bookingTask -> {
+                    if (bookingTask.isSuccessful()){
+                        if (bookingTask.getResult().isEmpty()){
+                            Toast.makeText(this, getResources().getString(R.string.drawer_no_restaurant_booked), Toast.LENGTH_SHORT).show();
+                        }else{
+                            Map<String,Object> extra = new HashMap<>();
+                            for (QueryDocumentSnapshot booking : bookingTask.getResult()){
+                                extra.put("PlaceDetailResult",booking.getData().get("restaurantId"));
+                            }
+                            launchActivity(PlaceDetailsActivity.class,extra);
+                        }
 
+                    }
+                });
+                break;
+            case ACTIVITY_LOGIN:
+                launchActivity(LoginActivity.class,null);
+                break;
+        }
+    }
 
-
+    private void launchActivity(Class mClass, Map<String,Object> info){
+        Intent intent = new Intent(this, mClass);
+        if (info != null){
+            for (Object key : info.keySet()) {
+                String mKey = (String)key;
+                String value = (String) info.get(key);
+                intent.putExtra(mKey, value);
+            }
+        }
+        startActivity(intent);
+    }
 
 
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
 
-        // Handle Navigation Item Click
         int id = item.getItemId();
-        if (id == R.id.drawer_logout){
+
+        switch (id) {
+            case R.id.drawer_lunch:
+                showActivity(ACTIVITY_PLACE_DETAIL);
+                break;
+
+            case R.id.drawer_settings:
+                showActivity(ACTIVITY_SETTINGS);
+                break;
+
+            case R.id.drawer_logout:
+                this.signOutUserFromFirebase();
+                break;
+
+            default:
+                break;
+        }
+        binding.activityMainDrawerLayout.closeDrawer(GravityCompat.START);
+
+        return true;
+
+
+
+    }
+
+    private void signOutUserFromFirebase() {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             builder.setMessage("Do you Want To Exit ?");
             builder.setCancelable(true);
@@ -329,9 +398,16 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             AlertDialog alertDialog = builder.create();
             alertDialog.show();
 
+
+
+        /*AuthUI.getInstance()
+                .signOut(this)
+                .addOnSuccessListener(this, this.updateUIAfterRESTRequestsCompleted(SIGN_OUT_TASK));*/
+
         }
-        return true;
-    }
+
+
+
 
     private void configureNavigationView() {
         NavigationView navigationView = binding.activityMainNavView;
@@ -346,15 +422,15 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                        switch (menuItem.getItemId()) {
 
                            case R.id.map:
-                               //  getSupportActionBar().setTitle(TITLE_HUNGRY);
+                               getSupportActionBar().setTitle(R.string.hungry);
                                showFragment(FRAGMENT_MAPVIEW);
                                break;
                            case R.id.list:
-                               //getSupportActionBar().setTitle(TITLE_HUNGRY);
+                               getSupportActionBar().setTitle(R.string.hungry);
                                showFragment(FRAGMENT_LISTVIEW);
                                break;
                            case R.id.mates:
-                               //getSupportActionBar().setTitle(TITLE_WORKMATES);
+                               getSupportActionBar().setTitle(R.string.available);
                                showFragment(FRAGMENT_MATES);
                                break;
                    }
@@ -362,4 +438,23 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                }
                });
     }
+
+
+    // Create OnCompleteListener called after tasks ended    ADDED
+   private OnSuccessListener<Void> updateUIAfterRESTRequestsCompleted(final int origin){
+        return new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                switch (origin){
+                    case SIGN_OUT_TASK:
+                        finish();
+                        showActivity(ACTIVITY_LOGIN);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+    }
+
 }

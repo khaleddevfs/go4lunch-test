@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -60,7 +61,7 @@ public class ListFragment extends BaseFragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(getActivity()).get(CommunicationViewModel.class);// trouver une solution pour le rouge
     }
@@ -69,16 +70,18 @@ public class ListFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_list, container, false);
-        setHasOptionsMenu(true);
-            ButterKnife.bind(this, view);
+                               binding = FragmentListBinding.inflate(getLayoutInflater());
+                               View view = binding.getRoot();  // View view = inflater.inflate(R.layout.fragment_list, container, false); ButterKnife.bind(this, view);
 
-        viewModel.currentUserPosition.observe(getViewLifecycleOwner(), latLng -> { // trouver une solution pour le rouge
+
+        setHasOptionsMenu(true);
+
+        viewModel.currentUserPosition.observe(getViewLifecycleOwner(), latLng -> {
                     executeHttpRequestWithRetrofit();
                     configureRecyclerView();
                 });
-        configureOnClickRecyclerView();
-        configureOnSwipeRefresh();
+        this.configureOnClickRecyclerView();
+        this.configureOnSwipeRefresh();
 
         return view;
     }
@@ -113,9 +116,7 @@ public class ListFragment extends BaseFragment {
         searchView.setSearchableInfo(searchManager.getSearchableInfo(((MainActivity) getContext()).getComponentName()));
 
         searchView.setIconifiedByDefault(false);// Do not iconify the widget; expand it by default
-
-
-     searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (query.length() > 2 ){
@@ -157,7 +158,8 @@ public class ListFragment extends BaseFragment {
                     Intent intent = new Intent(getActivity(),PlaceDetailsActivity.class);
                     intent.putExtra("PlaceDetailResult", result.getPlaceId());
                     startActivity(intent);
-                });    }
+                });
+    }
 
     private void executeHttpRequestWithRetrofit() {
         binding.listSwipeRefresh.setRefreshing(true);
@@ -175,7 +177,8 @@ public class ListFragment extends BaseFragment {
             }
             @Override
             public void onError(Throwable e) {
-                getActivity().runOnUiThread(() -> binding.listSwipeRefresh.setRefreshing(false));}
+                getActivity().runOnUiThread(() -> binding.listSwipeRefresh.setRefreshing(false));
+                handleError(e);}
             @Override
             public void onComplete() { }
         };
@@ -197,8 +200,4 @@ public class ListFragment extends BaseFragment {
     private void disposeWhenDestroy(){
         if (this.disposable != null && !this.disposable.isDisposed()) this.disposable.dispose();
     }
-
-
-
-
 }

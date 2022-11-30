@@ -62,13 +62,4 @@ public class PlacesStreams {
                 .observeOn(AndroidSchedulers.mainThread())
                 .timeout(10, TimeUnit.SECONDS);
     }
-
-
-
-
-
-
-
-
-
 }

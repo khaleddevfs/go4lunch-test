@@ -5,7 +5,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.example.go4lunch.models.*;
-import java.util.ArrayList;
+
 
 public class UserRepository {
 
@@ -21,8 +21,8 @@ public class UserRepository {
 
     // Create User
 
-    public static Task<Void> createUser(String uid, String username, String urlPicture, ArrayList<String> choice, boolean isNotificationOn) {
-        User userToCreate = new User(uid, username, urlPicture, choice, isNotificationOn);
+    public static Task<Void> createUser(String uid, String username, String urlPicture, int searchRadius, int defaultZoom, boolean isNotificationOn) {
+        User userToCreate = new User(uid, username, urlPicture, searchRadius, defaultZoom, isNotificationOn);
         return UserRepository.getUsersCollection().document(uid).set(userToCreate);
     }
 
@@ -34,8 +34,13 @@ public class UserRepository {
 
     // Update User
 
-    public static Task<Void> updateUserSettings(String userId, boolean notification){
+    public static Task<Void> updateUserSettings(String userId, int zoom, int radius, boolean notification){
         return  UserRepository.getUsersCollection().document(userId)
-                .update("notificationOn",notification);
+                .update(
+                        "notificationOn",notification,
+                        "defaultZoom",zoom,
+                        "searchRadius", radius
+
+                );
     }
 }

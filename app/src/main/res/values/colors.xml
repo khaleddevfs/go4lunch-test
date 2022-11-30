@@ -12,6 +12,7 @@
     <color name="Gray">#9e9e9e</color>
     <color name="Star">#ffd600</color>
     <color name="Divider">#bdbdbd</color>
+    <color name="colorGreen">#85b387</color>
 
     <color name="colorError">#FF5252</color>
     <color name="colorWarning">#ff8a65</color>

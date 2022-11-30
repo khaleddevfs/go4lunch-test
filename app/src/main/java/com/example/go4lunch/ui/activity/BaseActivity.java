@@ -1,25 +1,34 @@
 package com.example.go4lunch.ui.activity;
 
 
+import android.databinding.tool.util.L;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 
-
+import com.example.go4lunch.R;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import retrofit2.HttpException;
 
 public class BaseActivity extends AppCompatActivity {
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FirebaseApp.initializeApp(this);
     }
@@ -40,13 +49,34 @@ public class BaseActivity extends AppCompatActivity {
         return df.format(c.getTime());
     }
 
+    protected OnFailureListener onFailureListener(){
+        return new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), getString((R.string.error_unknown_error)), Toast.LENGTH_SHORT).show();
 
+            }
+        };
+    }
 
+    protected void handleError(Throwable throwable){
+        if (throwable instanceof HttpException){
+            HttpException httpException = (HttpException) throwable;
+            int statusCode = httpException.code();
+            Log.e("HttpException", "Error code : "+ statusCode);
+            Toast.makeText(this, getResources().getString(R.string.http_error_message, statusCode), Toast.LENGTH_SHORT).show();
+        }else if (throwable instanceof SocketTimeoutException){
+            Log.e("SocketTimeoutException", "Timeout from retrofit");
+            Toast.makeText(this, getResources().getString(R.string.timeout_error_message), Toast.LENGTH_SHORT).show();
+        }else if (throwable instanceof IOException){
+            Log.e("IOException", "Error");
+            Toast.makeText(this, getResources().getString(R.string.exception_error_message), Toast.LENGTH_SHORT).show();
+        } else {
+            Log.e("Generic handleError", "Error");
+            Toast.makeText(this, getResources().getString(R.string.generic_error_message), Toast.LENGTH_SHORT).show();
+        }
+    }
 }
 
-   /* private void initBinding(){
-        binding = getViewBinding();
-        View view = binding.getRoot();
-        setContentView(view);
-    }*/
+
 

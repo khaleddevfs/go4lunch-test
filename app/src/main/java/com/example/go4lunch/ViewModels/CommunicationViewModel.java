@@ -3,14 +3,16 @@ package com.example.go4lunch.ViewModels;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.type.LatLng;
+import com.google.android.gms.maps.model.LatLng;
 
 public class CommunicationViewModel extends ViewModel {
 
     public final MutableLiveData<String> currentUserUID = new MutableLiveData<>();
     public final MutableLiveData<LatLng> currentUserPosition = new MutableLiveData<>();
+
     public final MutableLiveData<Integer> currentUserZoom = new MutableLiveData<>();
     public final MutableLiveData<Integer> currentUserRadius = new MutableLiveData<>();
+
 
 
     public void updateCurrentUserUID(String uid) {
@@ -21,7 +23,9 @@ public class CommunicationViewModel extends ViewModel {
         return currentUserUID.getValue();
     }
 
-    public void updateCurrentPosition(LatLng latLng) {
+
+
+    public void updateCurrentUserPosition(LatLng latLng) {
         currentUserPosition.setValue(latLng);
     }
 
@@ -29,7 +33,9 @@ public class CommunicationViewModel extends ViewModel {
         return currentUserPosition.getValue();
     }
 
-    public void updateCurrentZoom(int zoom) {
+
+
+    public void updateCurrentUserZoom(int zoom) {
         currentUserZoom.setValue(zoom);
     }
 
@@ -37,7 +43,9 @@ public class CommunicationViewModel extends ViewModel {
         return currentUserZoom.getValue();
     }
 
-    public void updateCurrentRadius(int radius) {
+
+
+    public void updateCurrentUserRadius(int radius) {
         currentUserRadius.setValue(radius);
     }
 
@@ -46,10 +54,13 @@ public class CommunicationViewModel extends ViewModel {
     }
 
 
+
+
     public String getCurrentUserPositionFormatted(){
         String location = currentUserPosition.getValue().toString().replace("lat/lng: (", "");
         return location.replace(")", "");
     }
+
 
 
 }

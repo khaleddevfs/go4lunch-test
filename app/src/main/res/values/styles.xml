@@ -13,6 +13,7 @@
         <item name="windowActionBar">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
+    
 
     <!-- Toolbar theme. -->
     <style name="ToolBarStyle" parent="Theme.Go4Lunch">

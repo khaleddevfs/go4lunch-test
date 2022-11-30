@@ -14,7 +14,7 @@ import com.example.go4lunch.R;
 import com.example.go4lunch.databinding.FragmentListItemsBinding;
 import com.example.go4lunch.models.PlacesInfo.Location;
 import com.example.go4lunch.models.PlacesInfo.PlacesDetails.PlaceDetailsResults;
-import com.example.go4lunch.repository.ReservationRepository;
+import com.example.go4lunch.repository.BookingRepository;
 import com.example.go4lunch.ui.fragments.MapFragment;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -66,7 +66,7 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder {
         displayRating(results);
 
         // Display Mates number & Icon
-        ReservationRepository.getTodayBooking(results.getPlaceId(),getTodayDate()).addOnCompleteListener(restaurantTask -> {
+        BookingRepository.getTodayBooking(results.getPlaceId(),getTodayDate()).addOnCompleteListener(restaurantTask -> {
             if (restaurantTask.isSuccessful()){
                 if (restaurantTask.getResult().size() > 0) {
                     for (QueryDocumentSnapshot document : restaurantTask.getResult()) {
